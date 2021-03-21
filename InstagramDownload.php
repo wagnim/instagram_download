@@ -12,22 +12,30 @@ class InstagramDownload
 
         $doc = new \DOMDocument('1.0', 'UTF-8');
         libxml_use_internal_errors(true);
-        $doc->loadHTML($this->do($_GET['url']));
+
+        $url = trim($_GET['url']);
+        $doc->loadHTML($this->do($url));
 
         $metas = $doc->getElementsByTagName('meta');
         for ($i = 0; $i < $metas->length; $i++) {
             $meta = $metas->item($i);
             if ($meta->getAttribute('property') == 'og:video' || $meta->getAttribute('property') == 'og:image') {
-                $media_url = $meta->getAttribute('content');
+                $mediaUrl = $meta->getAttribute('content');
             }
         }
 
-        if ($media_url) {
-            $media_url = substr($media_url, 0, strpos( $media_url, '?'));
-            header('Content-Type: application/octet-stream');
-            header("Content-Transfer-Encoding: Binary");
-            header("Content-disposition: attachment; filename=\"" . $media_url . "\"");
-            readfile($media_url);
+        if ($mediaUrl) {
+          $mediaUrlName = substr($mediaUrl, 0, strpos($mediaUrl, '?'));
+
+          header('Content-Description: File Transfer');
+          header('Content-Type: application/octet-stream');
+          header('Content-Disposition: attachment; filename="' . $mediaUrlName . '"');
+          header('Expires: 0');
+          header('Cache-Control: must-revalidate');
+          header('Pragma: public');
+          header('Content-Length: ' . filesize($mediaUrl));
+          readfile($mediaUrl);
+
         } else {
             echo 'Media not found';
         }
